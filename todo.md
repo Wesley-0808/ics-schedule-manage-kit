@@ -13,6 +13,9 @@
 - 不依赖数据库，只需读取/写入本地文件
 - 提供小程序示例代码，快速上手～
 
+# 🌈 Docs
+[ics-schedule-manage-kit](https://ics.wwen.work/)
+
 # 📃 参考文献
 - [icalendar-github](https://github.com/collective/icalendar)
 - [ics-py](https://github.com/ics-py/ics-py)

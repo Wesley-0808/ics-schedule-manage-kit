@@ -1,0 +1,198 @@
+<view class="container">
+  <t-message id="t-message" />
+  <t-toast id="t-toast" />
+
+  <!-- 日历基本信息 -->
+  <t-cell-group wx:if="{{calendarDetails}}" title="日历信息">
+    <t-cell title="名称" note="{{calendarDetails.name}}" />
+    <t-cell title="描述" note="{{calendarDetails.description || '无'}}" />
+    <t-cell title="颜色">
+      <view slot="note" class="calendar-color-indicator" style="background-color: {{calendarDetails.color}};"></view>
+    </t-cell>
+    <t-cell title="时区" note="{{calendarDetails.timezone}}" />
+    <t-cell title="订阅链接" note="{{calendarDetails.subscribeUrl}}" hover arrow bindtap="copySubscribeUrl" />
+    <t-cell title="下载链接" note="{{calendarDetails.downloadUrl}}" hover arrow />
+  </t-cell-group>
+
+  <!-- Tabs for Events, Categories, Stats -->
+  <t-tabs value="{{activeTab}}" bindchange="onTabChange">
+    <t-tab-panel label="事件" value="events">
+      <view class="tab-content">
+        <t-button theme="primary" size="small" block bindtap="showCreateEventDialog">创建新事件</t-button>
+        <t-cell-group wx:if="{{events.length > 0}}">
+          <t-cell wx:for="{{events}}" wx:key="uid" title="{{item.title}}" hover arrow bindtap="editEvent" data-uid="{{item.uid}}">
+            <view slot="description">
+              <text>{{item.description || '无描述'}}</text>
+              <text wx:if="{{item.location}}"> | {{item.location}}</text>
+              <text wx:if="{{item.start_timestamp}}"> | 开始: {{item.start_timestamp}}</text>
+              <text wx:if="{{item.end_timestamp}}"> | 结束: {{item.end_timestamp}}</text>
+              <text wx:if="{{item.duration_minutes}}"> | 持续: {{item.duration_minutes}}分钟</text>
+              <text wx:if="{{item.category_id}}"> | 分类: {{item.categoryName}}</text>
+            </view>
+            <view slot="right-icon" class="event-actions">
+              <t-icon name="edit" data-uid="{{item.uid}}" bindtap="editEvent" />
+              <t-icon name="delete" data-uid="{{item.uid}}" data-title="{{item.title}}" bindtap="deleteEvent" />
+            </view>
+          </t-cell>
+        </t-cell-group>
+        <view wx:else class="empty-tip">
+          <text>暂无事件，快来创建一个吧！</text>
+        </view>
+      </view>
+    </t-tab-panel>
+
+    <t-tab-panel label="分类" value="categories">
+      <view class="tab-content">
+        <t-button theme="primary" size="small" block bindtap="showCreateCategoryDialog">创建新分类</t-button>
+        <t-cell-group wx:if="{{categories.length > 0}}">
+          <t-cell wx:for="{{categories}}" wx:key="id" title="{{item.name}}">
+            <view slot="description">
+              <text>{{item.description || '无描述'}}</text>
+              <view class="calendar-color-indicator" style="background-color: {{item.color}};"></view>
+            </view>
+            <t-icon slot="right-icon" name="delete" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="deleteCategory" />
+          </t-cell>
+        </t-cell-group>
+        <view wx:else class="empty-tip">
+          <text>暂无分类，快来创建一个吧！</text>
+        </view>
+      </view>
+    </t-tab-panel>
+
+    <t-tab-panel label="统计" value="stats">
+      <view class="tab-content" wx:if="{{stats}}">
+        <t-cell-group title="事件统计">
+          <t-cell title="总事件数" note="{{stats.total_events}}" />
+          <t-cell title="全天事件" note="{{stats.event_type_stats.all_day}}" />
+          <t-cell title="时段事件" note="{{stats.event_type_stats.timed}}" />
+          <t-cell title="区间事件" note="{{stats.event_type_stats.duration}}" />
+        </t-cell-group>
+        <t-cell-group title="分类统计">
+          <t-cell wx:for="{{stats.category_stats}}" wx:key="key" title="{{item.key}}" note="{{item.value}}" />
+        </t-cell-group>
+        <t-cell-group title="日历版本">
+          <t-cell title="版本" note="{{stats.version}}" />
+          <t-cell title="创建时间" note="{{stats.created_timestamp}}" />
+          <t-cell title="修改时间" note="{{stats.modified_timestamp}}" />
+        </t-cell-group>
+      </view>
+      <view wx:else class="empty-tip">
+        <text>暂无统计数据。</text>
+      </view>
+    </t-tab-panel>
+  </t-tabs>
+
+  <!-- 创建事件对话框 -->
+  <t-dialog
+    visible="{{showCreateEventDialog}}"
+    title="创建新事件"
+    confirm-btn="创建"
+    cancel-btn="取消"
+    bind:confirm="createNewEvent"
+    bind:cancel="closeCreateEventDialog"
+  >
+    <view slot="content" class="dialog-content">
+      <t-input label="标题" placeholder="请输入事件标题" value="{{newEventTitle}}" bindchange="onEventTitleChange" />
+      <t-input label="描述" placeholder="请输入事件描述 (可选)" value="{{newEventDescription}}" bindchange="onEventDescriptionChange" />
+      <t-input label="地点" placeholder="请输入事件地点 (可选)" value="{{newEventLocation}}" bindchange="onEventLocationChange" />
+
+      <view class="form-item">
+        <text class="form-label">事件类型</text>
+        <t-radio-group value="{{newEventEventType}}" bindchange="onEventTypeChange" style="display: flex;">
+          <t-radio wx:for="{{eventTypes}}" wx:key="value" value="{{item.value}}" block="{{false}}">{{item.label}}</t-radio>
+        </t-radio-group>
+      </view>
+
+      <t-input wx:if="{{newEventEventType === 'ALL_DAY' || newEventEventType === 'TIMED' || newEventEventType === 'DURATION'}}"
+        label="开始时间戳" placeholder="请输入开始时间戳" type="number" value="{{newEventStartTimestamp}}" bindchange="onEventStartTimestampChange" />
+      <t-input wx:if="{{newEventEventType === 'TIMED'}}"
+        label="结束时间戳" placeholder="请输入结束时间戳" type="number" value="{{newEventEndTimestamp}}" bindchange="onEventEndTimestampChange" />
+      <t-input wx:if="{{newEventEventType === 'DURATION'}}"
+        label="持续时长(分钟)" placeholder="请输入持续时长" type="number" value="{{newEventDurationMinutes}}" bindchange="onEventDurationMinutesChange" />
+
+      <view class="form-item">
+        <text class="form-label">选择分类</text>
+        <t-radio-group value="{{newEventCategoryId}}" bindchange="onEventCategoryChange">
+          <t-radio value="">无分类</t-radio>
+          <t-radio wx:for="{{categories}}" wx:key="id" value="{{item.id}}">{{item.name}}</t-radio>
+        </t-radio-group>
+      </view>
+    </view>
+  </t-dialog>
+
+  <!-- 编辑事件对话框 -->
+  <t-dialog
+    visible="{{showEditEventDialog}}"
+    title="编辑事件"
+    confirm-btn="保存"
+    cancel-btn="取消"
+    bind:confirm="updateExistingEvent"
+    bind:cancel="closeEditEventDialog"
+  >
+    <view slot="content" class="dialog-content">
+      <t-input label="标题" placeholder="请输入事件标题" value="{{editingEventTitle}}" bindchange="onEditingEventTitleChange" />
+      <t-textarea label="描述" placeholder="请输入事件描述 (可选)" value="{{editingEventDescription}}" bindchange="onEditingEventDescriptionChange" />
+      <t-input label="地点" placeholder="请输入事件地点 (可选)" value="{{editingEventLocation}}" bindchange="onEditingEventLocationChange" />
+
+      <view class="form-item">
+        <text class="form-label">事件类型</text>
+        <t-radio-group value="{{editingEventEventType}}" bindchange="onEditingEventTypeChange">
+          <t-radio wx:for="{{eventTypes}}" wx:key="value" value="{{item.value}}">{{item.label}}</t-radio>
+        </t-radio-group>
+      </view>
+
+      <t-input wx:if="{{editingEventEventType === 'ALL_DAY' || editingEventEventType === 'TIMED' || editingEventEventType === 'DURATION'}}"
+        label="开始时间戳" placeholder="请输入开始时间戳" type="number" value="{{editingEventStartTimestamp}}" bindchange="onEditingEventStartTimestampChange" />
+      <t-input wx:if="{{editingEventEventType === 'TIMED'}}"
+        label="结束时间戳" placeholder="请输入结束时间戳" type="number" value="{{editingEventEndTimestamp}}" bindchange="onEditingEventEndTimestampChange" />
+      <t-input wx:if="{{editingEventEventType === 'DURATION'}}"
+        label="持续时长(分钟)" placeholder="请输入持续时长" type="number" value="{{editingEventDurationMinutes}}" bindchange="onEditingEventDurationMinutesChange" />
+
+      <view class="form-item">
+        <text class="form-label">选择分类</text>
+        <t-radio-group value="{{editingEventCategoryId}}" bindchange="onEditingEventCategoryChange">
+          <t-radio value="">无分类</t-radio>
+          <t-radio wx:for="{{categories}}" wx:key="id" value="{{item.id}}">{{item.name}}</t-radio>
+        </t-radio-group>
+      </view>
+    </view>
+  </t-dialog>
+
+  <!-- 创建分类对话框 -->
+  <t-dialog
+    visible="{{showCreateCategoryDialog}}"
+    title="创建新分类"
+    confirm-btn="创建"
+    cancel-btn="取消"
+    bind:confirm="createNewCategory"
+    bind:cancel="closeCreateCategoryDialog"
+  >
+    <view slot="content" class="dialog-content">
+      <t-input
+        label="分类名称"
+        placeholder="请输入分类名称"
+        value="{{newCategoryName}}"
+        bindchange="onCategoryNameChange"
+      />
+      <t-input
+        label="分类描述"
+        placeholder="请输入分类描述 (可选)"
+        value="{{newCategoryDescription}}"
+        bindchange="onCategoryDescriptionChange"
+      />
+      <view class="color-picker">
+        <text class="color-picker-label">选择颜色:</text>
+        <view class="color-options">
+          <view
+            wx:for="{{colors}}"
+            wx:key="*this"
+            class="color-box {{item === newCategoryColor ? 'selected' : ''}}"
+            style="background-color: {{item}};"
+            data-color="{{item}}"
+            bindtap="onCategoryColorSelect"
+          ></view>
+        </view>
+      </view>
+    </view>
+  </t-dialog>
+</view>

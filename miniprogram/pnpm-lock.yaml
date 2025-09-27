@@ -1,0 +1,31 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      tdesign-miniprogram:
+        specifier: ^1.2.0
+        version: 1.10.1
+    devDependencies:
+      '@types/wechat-miniprogram':
+        specifier: ^3.4.0
+        version: 3.4.8
+
+packages:
+
+  '@types/wechat-miniprogram@3.4.8':
+    resolution: {integrity: sha512-lOqddA707X3SZxVhlZNBZPzYzj7lG/ED2fF30k+aE2oT6R4wfw0Wiup2k2hGrmzYUFyJXfGs01sDCuJMhQMAdg==}
+
+  tdesign-miniprogram@1.10.1:
+    resolution: {integrity: sha512-rKM3JYfJGB+R9G/yp6kGVN0Kc0hKqKoQnpoWm7OVrXNsYM0dlJXwTf+WsLkQtgUyfM20taqNaxXD852Bx7IseQ==}
+
+snapshots:
+
+  '@types/wechat-miniprogram@3.4.8': {}
+
+  tdesign-miniprogram@1.10.1: {}

@@ -1,0 +1,8 @@
+/* miniprogram/pages/timestamp-tool/timestamp-tool.wxss */
+.container {
+  padding: 20px;
+}
+
+.t-button {
+  margin-top: 20px;
+}

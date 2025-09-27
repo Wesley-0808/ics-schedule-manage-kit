@@ -1,0 +1,28 @@
+<view class="container">
+  <t-message id="t-message" />
+  <t-toast id="t-toast" />
+
+  <t-cell-group title="当前时间戳">
+    <t-cell title="时间戳 (秒)" note="{{currentTimestamp}}" />
+    <t-cell title="ISO 格式" note="{{currentIsoFormat}}" />
+  </t-cell-group>
+
+  <t-cell-group title="时间戳转换">
+    <t-input
+      label="输入时间戳"
+      placeholder="请输入要转换的时间戳"
+      type="number"
+      value="{{inputTimestamp}}"
+      bindchange="onInputTimestampChange"
+    />
+    <t-button theme="primary" block size="large" bindtap="convertTimestamp">转换</t-button>
+
+    <view wx:if="{{convertedTimestamp}}">
+      <t-cell title="时间戳" note="{{convertedTimestamp.timestamp}}" />
+      <t-cell title="ISO 格式" note="{{convertedTimestamp.iso_format}}" />
+      <t-cell title="可读格式" note="{{convertedTimestamp.readable}}" />
+      <t-cell title="日期" note="{{convertedTimestamp.date}}" />
+      <t-cell title="时间" note="{{convertedTimestamp.time}}" />
+    </view>
+  </t-cell-group>
+</view>

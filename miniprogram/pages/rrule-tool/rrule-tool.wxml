@@ -1,0 +1,37 @@
+<view class="container">
+  <t-message id="t-message" />
+  <t-toast id="t-toast" />
+
+  <t-cell-group title="RRULE 构建器">
+    <view class="form-item">
+      <text class="form-label">频率 (freq):</text>
+      <t-radio-group value="{{freq}}" bindchange="onFreqChange">
+        <t-radio wx:for="{{freqOptions}}" wx:key="value" value="{{item.value}}">{{item.label}}</t-radio>
+      </t-radio-group>
+    </view>
+
+    <t-input label="间隔 (interval):" placeholder="请输入间隔数 (默认1)" type="number" value="{{interval}}" bindchange="onIntervalChange" />
+    <t-input label="重复次数 (count):" placeholder="请输入重复次数" type="number" value="{{count}}" bindchange="onCountChange" />
+    <t-input label="结束时间戳 (until_timestamp):" placeholder="请输入结束时间戳" type="number" value="{{untilTimestamp}}" bindchange="onUntilTimestampChange" />
+
+    <view class="form-item">
+      <text class="form-label">星期几 (by_weekday):</text>
+      <t-checkbox-group value="{{byWeekday}}" bindchange="onByWeekdayChange">
+        <t-checkbox wx:for="{{byWeekdayOptions}}" wx:key="value" value="{{item.value}}">{{item.label}}</t-checkbox>
+      </t-checkbox-group>
+    </view>
+
+    <t-input label="每月第几天 (by_monthday):" placeholder="请输入每月第几天" type="number" value="{{byMonthday}}" bindchange="onByMonthdayChange" />
+    <t-input label="月份 (by_month):" placeholder="请输入月份" type="number" value="{{byMonth}}" bindchange="onByMonthChange" />
+
+    <t-button theme="primary" block size="large" bindtap="previewRrule">预览 RRULE</t-button>
+  </t-cell-group>
+
+  <t-cell-group title="生成的 RRULE 字符串" wx:if="{{rruleString}}">
+    <t-cell note="{{rruleString}}" />
+  </t-cell-group>
+
+  <t-cell-group title="示例" wx:if="{{rruleExamples}}">
+    <t-cell wx:for="{{rruleExamples}}" wx:key="key" title="{{item.key}}" note="{{item.value.freq}}" />
+  </t-cell-group>
+</view>

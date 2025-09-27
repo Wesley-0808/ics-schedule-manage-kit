@@ -98,7 +98,7 @@ async def list_calendars():
         "data": {"calendars": calendars}
     }
 
-@app.get("/calendars/{calendar_id}", summary="获取日历详情", response_model=CalendarResponse)
+@app.get("/calendars/{calendar_id}", summary="获取日历详情", response_model=dict)
 async def get_calendar(calendar_id: str):
     """获取指定日历的详细信息"""
     calendar = ics_service.get_calendar(calendar_id)
@@ -161,7 +161,7 @@ async def download_calendar(calendar_id: str):
 
 # ==================== 事件管理 ====================
 
-@app.post("/calendars/{calendar_id}/events", summary="创建事件", response_model=EventResponse)
+@app.post("/calendars/{calendar_id}/events", summary="创建事件", response_model=dict)
 async def create_event(calendar_id: str, request: CreateEventRequest):
     """在指定日历中创建新事件
     
@@ -246,7 +246,7 @@ async def get_calendar_events(
         "data": {"events": events}
     }
 
-@app.get("/calendars/{calendar_id}/events/{event_uid}", summary="获取事件详情", response_model=EventResponse)
+@app.get("/calendars/{calendar_id}/events/{event_uid}", summary="获取事件详情", response_model=dict)
 async def get_event(calendar_id: str, event_uid: str):
     """获取指定事件的详细信息"""
     calendar = ics_service.get_calendar(calendar_id)
@@ -263,7 +263,7 @@ async def get_event(calendar_id: str, event_uid: str):
     
     raise HTTPException(status_code=404, detail="事件不存在")
 
-@app.put("/calendars/{calendar_id}/events/{event_uid}", summary="更新事件", response_model=EventResponse)
+@app.put("/calendars/{calendar_id}/events/{event_uid}", summary="更新事件", response_model=dict)
 async def update_event(calendar_id: str, event_uid: str, request: UpdateEventRequest):
     """更新指定的事件
     

@@ -1,3 +1,15 @@
 {
-  "calendars": {}
+  "calendars": {
+    "8b29157f-73b4-4bd3-a62c-ad3772401469": {
+      "name": "test",
+      "description": "",
+      "color": "#0052D9",
+      "timezone": "Asia/Shanghai",
+      "categories": [],
+      "version": 4,
+      "created_timestamp": 1758948451,
+      "modified_timestamp": 1758951593,
+      "file_path": "calendars/8b29157f-73b4-4bd3-a62c-ad3772401469.ics"
+    }
+  }
 }

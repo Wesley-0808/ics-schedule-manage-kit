@@ -1,0 +1,61 @@
+/* miniprogram/pages/index/index.wxss */
+.container {
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+.dialog-content {
+  padding: 20px 0;
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.color-picker-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: 14px;
+  line-height: 22px;
+  padding-right: 12px;
+}
+
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.color-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.color-box.selected {
+  border-color: #0052D9; /* 选中颜色边框 */
+}
+
+.calendar-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+}

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Response, Query
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 import uuid
@@ -19,6 +19,17 @@ app = FastAPI(
     description="一个功能完整的ICS日程管理系统，兼容Apple日历、Google Calendar、Outlook等",
     version="2.0.0"
 )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "errcode": exc.status_code,
+            "errmsg": exc.detail,
+            "data": None
+        }
+    )
 
 # 添加CORS中间件
 app.add_middleware(
@@ -54,17 +65,21 @@ async def create_calendar(request: CreateCalendarRequest):
     file_path = ics_service.create_calendar(calendar)
     
     return {
-        "id": calendar_id,
-        "name": calendar.name,
-        "description": calendar.description,
-        "color": calendar.color,
-        "timezone": calendar.timezone,
-        "version": calendar.version,
-        "created_timestamp": calendar.created_timestamp,
-        "modified_timestamp": calendar.modified_timestamp,
-        "file_path": file_path,
-        "subscribe_url": f"/calendars/{calendar_id}/subscribe",
-        "download_url": f"/calendars/{calendar_id}/download"
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {
+            "id": calendar_id,
+            "name": calendar.name,
+            "description": calendar.description,
+            "color": calendar.color,
+            "timezone": calendar.timezone,
+            "version": calendar.version,
+            "created_timestamp": calendar.created_timestamp,
+            "modified_timestamp": calendar.modified_timestamp,
+            "file_path": file_path,
+            "subscribe_url": f"/calendars/{calendar_id}/subscribe",
+            "download_url": f"/calendars/{calendar_id}/download"
+        }
     }
 
 @app.get("/calendars", summary="获取所有日历")
@@ -77,7 +92,11 @@ async def list_calendars():
         calendar["subscribe_url"] = f"/calendars/{calendar['id']}/subscribe"
         calendar["download_url"] = f"/calendars/{calendar['id']}/download"
     
-    return {"calendars": calendars}
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {"calendars": calendars}
+    }
 
 @app.get("/calendars/{calendar_id}", summary="获取日历详情", response_model=CalendarResponse)
 async def get_calendar(calendar_id: str):
@@ -86,7 +105,11 @@ async def get_calendar(calendar_id: str):
     if not calendar:
         raise HTTPException(status_code=404, detail="日历不存在")
     
-    return calendar
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": calendar
+    }
 
 @app.delete("/calendars/{calendar_id}", summary="删除日历")
 async def delete_calendar(calendar_id: str):
@@ -95,7 +118,11 @@ async def delete_calendar(calendar_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="日历不存在")
     
-    return {"message": "日历删除成功"}
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {"message": "日历删除成功"}
+    }
 
 # ==================== 日历订阅和下载 ====================
 
@@ -160,7 +187,11 @@ async def create_event(calendar_id: str, request: CreateEventRequest):
         if not event_response:
             raise HTTPException(status_code=404, detail="日历不存在")
         
-        return event_response
+        return {
+            "errcode": 0,
+            "errmsg": "success",
+            "data": event_response
+        }
     
     except ConcurrencyError as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -209,7 +240,11 @@ async def get_calendar_events(
         
         events = filtered_events
     
-    return {"events": events}
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {"events": events}
+    }
 
 @app.get("/calendars/{calendar_id}/events/{event_uid}", summary="获取事件详情", response_model=EventResponse)
 async def get_event(calendar_id: str, event_uid: str):
@@ -220,7 +255,11 @@ async def get_event(calendar_id: str, event_uid: str):
     
     for event in calendar.events:
         if event.uid == event_uid:
-            return event
+            return {
+                "errcode": 0,
+                "errmsg": "success",
+                "data": event
+            }
     
     raise HTTPException(status_code=404, detail="事件不存在")
 
@@ -241,7 +280,11 @@ async def update_event(calendar_id: str, event_uid: str, request: UpdateEventReq
         if not event_response:
             raise HTTPException(status_code=404, detail="事件不存在")
         
-        return event_response
+        return {
+            "errcode": 0,
+            "errmsg": "success",
+            "data": event_response
+        }
     
     except ConcurrencyError as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -257,7 +300,11 @@ async def delete_event(calendar_id: str, event_uid: str):
     if not success:
         raise HTTPException(status_code=404, detail="事件不存在")
     
-    return {"message": "事件删除成功"}
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {"message": "事件删除成功"}
+    }
 
 # ==================== 分类管理 ====================
 
@@ -281,9 +328,13 @@ async def create_category(calendar_id: str, request: CreateCategoryRequest):
         raise HTTPException(status_code=500, detail="分类创建失败")
     
     return {
-        "id": category_id,
-        "message": "分类创建成功",
-        "category": category
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {
+            "id": category_id,
+            "message": "分类创建成功",
+            "category": category
+        }
     }
 
 @app.get("/calendars/{calendar_id}/categories", summary="获取分类列表")
@@ -293,7 +344,11 @@ async def get_categories(calendar_id: str):
     if not calendar:
         raise HTTPException(status_code=404, detail="日历不存在")
     
-    return {"categories": calendar.categories}
+    return {
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {"categories": calendar.categories}
+    }
 
 # ==================== 统计信息 ====================
 
@@ -330,13 +385,17 @@ async def get_calendar_stats(calendar_id: str):
             category_stats["无分类"] = category_stats.get("无分类", 0) + 1
     
     return {
-        "total_events": total_events,
-        "total_categories": len(calendar.categories),
-        "event_type_stats": event_type_stats,
-        "category_stats": category_stats,
-        "version": calendar.version,
-        "created_timestamp": calendar.created_timestamp,
-        "modified_timestamp": calendar.modified_timestamp
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {
+            "total_events": total_events,
+            "total_categories": len(calendar.categories),
+            "event_type_stats": event_type_stats,
+            "category_stats": category_stats,
+            "version": calendar.version,
+            "created_timestamp": calendar.created_timestamp,
+            "modified_timestamp": calendar.modified_timestamp
+        }
     }
 
 # ==================== 时间戳工具 ====================
@@ -345,9 +404,13 @@ async def get_calendar_stats(calendar_id: str):
 async def get_current_timestamp():
     """获取当前时间戳"""
     return {
-        "timestamp": int(datetime.now().timestamp()),
-        "iso_format": datetime.now().isoformat(),
-        "description": "当前时间戳（秒）"
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {
+            "timestamp": int(datetime.now().timestamp()),
+            "iso_format": datetime.now().isoformat(),
+            "description": "当前时间戳（秒）"
+        }
     }
 
 @app.get("/utils/timestamp/{timestamp}", summary="时间戳转换")
@@ -356,11 +419,15 @@ async def convert_timestamp(timestamp: int):
     try:
         dt = datetime.fromtimestamp(timestamp)
         return {
-            "timestamp": timestamp,
-            "iso_format": dt.isoformat(),
-            "readable": dt.strftime("%Y-%m-%d %H:%M:%S"),
-            "date": dt.strftime("%Y-%m-%d"),
-            "time": dt.strftime("%H:%M:%S")
+            "errcode": 0,
+            "errmsg": "success",
+            "data": {
+                "timestamp": timestamp,
+                "iso_format": dt.isoformat(),
+                "readable": dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "date": dt.strftime("%Y-%m-%d"),
+                "time": dt.strftime("%H:%M:%S")
+            }
         }
     except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=f"无效的时间戳: {str(e)}")
@@ -395,10 +462,14 @@ async def preview_rrule(rrule_builder: dict):
         }
         
         return {
-            "rrule_builder": builder,
-            "rrule_string": rrule_string,
-            "description": "生成的RRULE字符串",
-            "examples": examples
+            "errcode": 0,
+            "errmsg": "success",
+            "data": {
+                "rrule_builder": builder,
+                "rrule_string": rrule_string,
+                "description": "生成的RRULE字符串",
+                "examples": examples
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"RRULE构建失败: {str(e)}")
@@ -409,16 +480,20 @@ async def preview_rrule(rrule_builder: dict):
 async def health_check():
     """系统健康检查"""
     return {
-        "status": "healthy",
-        "timestamp": int(datetime.now().timestamp()),
-        "calendars_count": len(ics_service.metadata["calendars"]),
-        "version": "2.0.0",
-        "features": {
-            "concurrency_control": True,
-            "server_side_uid": True,
-            "timestamp_format": True,
-            "structured_location": True,
-            "rrule_builder": True
+        "errcode": 0,
+        "errmsg": "success",
+        "data": {
+            "status": "healthy",
+            "timestamp": int(datetime.now().timestamp()),
+            "calendars_count": len(ics_service.metadata["calendars"]),
+            "version": "2.0.0",
+            "features": {
+                "concurrency_control": True,
+                "server_side_uid": True,
+                "timestamp_format": True,
+                "structured_location": True,
+                "rrule_builder": True
+            }
         }
     }
 
@@ -426,8 +501,14 @@ async def health_check():
 
 @app.exception_handler(ConcurrencyError)
 async def concurrency_error_handler(request, exc):
-    """处理并发冲突异常"""
-    return HTTPException(status_code=409, detail=str(exc))
+    return JSONResponse(
+        status_code=409,
+        content={
+            "errcode": 409,
+            "errmsg": str(exc),
+            "data": None
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

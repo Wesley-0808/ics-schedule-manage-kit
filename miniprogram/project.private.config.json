@@ -3,7 +3,7 @@
   "projectname": "ics-schedule-manage-kit-miniprogram",
   "condition": {},
   "setting": {
-    "urlCheck": false,
+    "urlCheck": true,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,
